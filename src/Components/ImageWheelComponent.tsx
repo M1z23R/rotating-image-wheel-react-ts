@@ -62,7 +62,7 @@ const ImageWheelComponent = ({ imageUrls, imageSize, gap = 20 }: Props) => {
     <div
       style={{
         width: `${imageSize.width}px`,
-        height: `${imageSize.height * 2}px`,
+        height: `${imageSize.height + distance}px`,
       }}
     >
       {imageUrls.map((image, i) => (
@@ -75,9 +75,7 @@ const ImageWheelComponent = ({ imageUrls, imageSize, gap = 20 }: Props) => {
             )}deg) translateZ(${distance}px)`,
             display:
               (getRotationAngle(i) >= 0 && getRotationAngle(i) <= 90) ||
-              (getRotationAngle(i) <= 0 && getRotationAngle(i) >= -90) ||
-              (getRotationAngle(i) >= 270 && getRotationAngle(i) <= 360) ||
-              (getRotationAngle(i) <= -270 && getRotationAngle(i) >= -360)
+              (getRotationAngle(i) >= 270 && getRotationAngle(i) <= 360)
                 ? "block"
                 : "none",
           }}
