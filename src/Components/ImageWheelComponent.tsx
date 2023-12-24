@@ -3,20 +3,28 @@ import { useEffect, useMemo, useState } from "react";
 
 interface Props {
   imageSize: { width: number; height: number };
-  imageUrls: string[];
+  imageUrls: { label: string; src: string }[];
   gap?: number;
+  autoRotate?: boolean;
+  rotateSpeed?: number;
 }
-const ImageWheelComponent = ({ imageUrls, imageSize, gap = 20 }: Props) => {
+const ImageWheelComponent = ({
+  imageUrls,
+  imageSize,
+  gap = 20,
+  autoRotate = false,
+  rotateSpeed = 0,
+}: Props) => {
   const [angle, setAngle] = useState<number>(0);
 
   const degreesToRadians = (degrees: number) => degrees * (Math.PI / 180);
 
   const distance = useMemo(
     () =>
-      imageSize.width /
-        (4 * Math.tan(degreesToRadians(360 / (imageUrls.length * 2)))) +
+      imageSize.height /
+        (2 * Math.tan(degreesToRadians(360 / (imageUrls.length * 2)))) +
       gap,
-    [imageUrls, imageSize]
+    [imageUrls, imageSize, gap]
   );
 
   const innerAngle = useMemo(
@@ -44,20 +52,21 @@ const ImageWheelComponent = ({ imageUrls, imageSize, gap = 20 }: Props) => {
       }
     };
 
-    const onMouseDown = (e: MouseEvent) => {
-      setDragging(true);
-      setStartY(e.clientY);
-    };
-
     window.addEventListener("mouseup", onMouseUp);
     window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mousedown", onMouseDown);
     return () => {
       window.removeEventListener("mouseup", onMouseUp);
       window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mousedown", onMouseDown);
     };
   });
+
+  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    console.log(e.button);
+    if (e.button === 0) {
+      setDragging(true);
+      setStartY(e.clientY);
+    }
+  };
   const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
     setDragging(false);
     setStartY(e.touches[0].clientY);
@@ -72,14 +81,29 @@ const ImageWheelComponent = ({ imageUrls, imageSize, gap = 20 }: Props) => {
     setDragging(true);
     setStartY(e.touches[0].clientY);
   };
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (autoRotate && !dragging) {
+        setAngle((c) => (c - 1) % 360);
+      }
+    }, rotateSpeed);
+
+    return () => {
+      clearInterval(id);
+    };
+  }, [autoRotate, rotateSpeed, dragging]);
+
   return (
     <div
+      onMouseDown={onMouseDown}
       onTouchMove={onTouchMove}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       style={{
+        border: "1px solid red",
         width: `${imageSize.width}px`,
-        height: `${imageSize.height + distance}px`,
+        height: `${imageSize.height}px`,
       }}
     >
       {imageUrls.map((image, i) => (
@@ -87,6 +111,8 @@ const ImageWheelComponent = ({ imageUrls, imageSize, gap = 20 }: Props) => {
           key={i}
           className="image-div"
           style={{
+            height: imageSize.height,
+            width: imageSize.width,
             transform: `rotateX(${getRotationAngle(
               i
             )}deg) translateZ(${distance}px)`,
@@ -95,9 +121,14 @@ const ImageWheelComponent = ({ imageUrls, imageSize, gap = 20 }: Props) => {
               (getRotationAngle(i) >= 270 && getRotationAngle(i) <= 360)
                 ? "block"
                 : "none",
+            zIndex: Math.abs(getRotationAngle(i) - 180),
+            // (getRotationAngle(i) >= 0 && getRotationAngle(i) <= 90) ||
+            // (getRotationAngle(i) >= 270 && getRotationAngle(i) <= 360)
+            //   ? 0
+            //   : -1,
           }}
         >
-          <img src={image} />
+          <img src={image.src} />
         </div>
       ))}
     </div>

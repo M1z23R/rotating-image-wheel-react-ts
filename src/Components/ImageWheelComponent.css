@@ -1,9 +1,6 @@
 .image-div {
   position: absolute;
-  width: 200px;
-  height: 100px;
   transform-origin: 50% 50%;
-  perspective: 173px;
   pointer-events: none;
   user-select: none;
 }
