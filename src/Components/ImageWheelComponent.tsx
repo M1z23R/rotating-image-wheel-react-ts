@@ -58,8 +58,25 @@ const ImageWheelComponent = ({ imageUrls, imageSize, gap = 20 }: Props) => {
       window.removeEventListener("mousedown", onMouseDown);
     };
   });
+  const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    setDragging(false);
+    setStartY(e.touches[0].clientY);
+    setLastAngle(angle);
+  };
+  const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (dragging) {
+      setAngle(lastAngle + ((startY - e.touches[0].clientY) % 360));
+    }
+  };
+  const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setDragging(true);
+    setStartY(e.touches[0].clientY);
+  };
   return (
     <div
+      onTouchMove={onTouchMove}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
       style={{
         width: `${imageSize.width}px`,
         height: `${imageSize.height + distance}px`,
